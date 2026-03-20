@@ -43,9 +43,9 @@ fn get_config_values(local_config_directory: &Path) -> ConfigValues {
     clearscreen::clear().expect("failed to clear screen");
 
     let user_config_values = ConfigValues {
-        email : email,
-        password : password,
-        new_email : new_email
+        email : email.trim().to_owned(),
+        password : password.trim().to_owned(),
+        new_email : new_email.trim().to_owned()
     };
 
 
