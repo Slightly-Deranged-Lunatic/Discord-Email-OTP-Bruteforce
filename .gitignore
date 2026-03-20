@@ -22,3 +22,6 @@ target
 
 # Log file
 logs/
+
+# Config files
+configs/
