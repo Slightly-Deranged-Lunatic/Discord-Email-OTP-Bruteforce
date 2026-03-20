@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+ftail = "0.3.1"
 log = "0.4.29"
 thirtyfour = "0.36.1"
 tokio = { version = "1.50.0", features = ["full"] }
