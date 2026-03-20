@@ -1,5 +1,5 @@
 use thirtyfour::{common::print, prelude::*};
-use std::{ error::Error, fs, path::{Path}};
+use std::{ error::Error, fs, path::{Path, PathBuf}};
 use ftail::Ftail;
 use log::LevelFilter;
 pub mod make_config_file;
@@ -16,34 +16,27 @@ struct ConfigValues {
 }
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    if let Some(base_dirs) = BaseDirs::new() {
-        let mut local_data_directory = base_dirs.data_local_dir().to_path_buf();
+    let (local_data_directory, local_config_directory) = get_data_directories();
 
-        local_data_directory.push("slightly_deranged_lunatic");
-        local_data_directory.push("discord_brute_force");
+    // Make log directory
+    if ! Path::exists(& local_data_directory) {
+        fs::create_dir_all(&local_data_directory)?;
+    }
 
-        // Make log directory
-        if ! Path::exists(& local_data_directory) {
-            fs::create_dir_all(&local_data_directory)?;
+    // Initalize logs
+    Ftail::new()
+    .daily_file(&local_data_directory.as_path(), LevelFilter::Info)
+    .init()?;
+
+    // Does a config file exist?
+    if ! Path::exists(&local_config_directory) {
+        log::info!("User had no config file, starting the creation process.");
+        make_config_file::make_config_file(&local_config_directory);
         }
-        // Initalize logs
-        Ftail::new()
-        .daily_file(&local_data_directory.as_path(), LevelFilter::Info)
-        .init()?;
-
-
-        // Does a config file exist?
-        let mut local_config_directory = base_dirs.config_local_dir().to_path_buf();
-        local_config_directory.push("slightly_deranged_lunatic");
-        local_config_directory.push("discord_brute_force");
-        local_config_directory = local_config_directory.join("config.json");
-
-        if ! Path::exists(&local_config_directory) {
-            log::info!("User had no config file, starting the creation process.");
-            make_config_file::make_config_file(&local_config_directory);
-        }
+    
+    // Get config stuff
     let config_values_result = get_config_values(local_config_directory.as_path());
-    let config_values = match (config_values_result) {
+    let config_values = match config_values_result {
         Ok(config) => {
             let config_values: ConfigValues = config;
             config_values
@@ -56,12 +49,10 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
                 password: String::new(),
             }
         }
-    }
-    }
+    };
+    
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
-    driver.goto("https://discord.com/login").await?;
-    log::info!("Opened and navigated to https://discord.com/login");
 
     navigate_to_email_code_entry(driver.clone());
 
@@ -76,6 +67,9 @@ async fn navigate_to_email_code_entry(driver: WebDriver) -> Result<(), Box<dyn E
 }
 
 async fn login_to_discord(driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
+    driver.goto("https://discord.com/login").await?;
+    log::info!("Opened and navigated to https://discord.com/login");
+
     let input_group_class = "animatedDiv_b97385"; // The box that has things like log in and text entries, grabbed because this will be frequently referenced and it feels easier to just grab from this
     let input_group = driver.find(By::ClassName(input_group_class)).await?;
 
@@ -100,4 +94,22 @@ fn get_config_values(local_config_directory: &Path) -> Result<ConfigValues, Box<
     let content = fs::read_to_string(local_config_directory)?;
     let config_values: ConfigValues = serde_json::from_str(&content).unwrap();
     return  Ok(config_values);
+}
+
+fn get_data_directories() -> (PathBuf, PathBuf) {
+    if let Some(base_dirs) = BaseDirs::new() {
+        let mut local_data_directory = base_dirs.data_local_dir().to_path_buf();
+
+        local_data_directory.push("slightly_deranged_lunatic");
+        local_data_directory.push("discord_brute_force");
+
+        let mut local_config_directory = base_dirs.config_local_dir().to_path_buf();
+        local_config_directory.push("slightly_deranged_lunatic");
+        local_config_directory.push("discord_brute_force");
+        local_config_directory = local_config_directory.join("config.json");
+
+        return (local_data_directory, local_config_directory)
+    } else{
+        return (PathBuf::new(), PathBuf::new())
+    }
 }
