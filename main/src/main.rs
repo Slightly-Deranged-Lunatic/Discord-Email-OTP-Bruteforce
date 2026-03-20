@@ -106,7 +106,7 @@ fn get_data_directories() -> (PathBuf, PathBuf) {
         let mut local_config_directory = base_dirs.config_local_dir().to_path_buf();
         local_config_directory.push("slightly_deranged_lunatic");
         local_config_directory.push("discord_brute_force");
-        local_config_directory = local_config_directory.join("config.json");
+        local_config_directory = local_config_directory.join("config.json"); //.join is used here because if it was .push it would have been a directory not a json file
 
         return (local_data_directory, local_config_directory)
     } else{
