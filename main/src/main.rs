@@ -1,10 +1,19 @@
-use thirtyfour::prelude::*;
+use thirtyfour::{common::print, prelude::*};
 use std::{ error::Error, fs, path::{Path}};
 use ftail::Ftail;
 use log::LevelFilter;
 pub mod make_config_file;
 use directories::BaseDirs;
+use std::fs::File;
+use serde::{Deserialize, Serialize};
 
+
+#[derive(Serialize, Deserialize)]
+struct ConfigValues {
+    email: String,
+    password: String,
+    new_email: String
+}
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     if let Some(base_dirs) = BaseDirs::new() {
@@ -33,7 +42,21 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             log::info!("User had no config file, starting the creation process.");
             make_config_file::make_config_file(&local_config_directory);
         }
-
+    let config_values_result = get_config_values(local_config_directory.as_path());
+    let config_values = match (config_values_result) {
+        Ok(config) => {
+            let config_values: ConfigValues = config;
+            config_values
+        }
+        Err(e) => {
+            log::error!("{}", e);
+            ConfigValues {
+                email: String::new(),
+                new_email: String::new(),
+                password: String::new(),
+            }
+        }
+    }
     }
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
@@ -73,6 +96,8 @@ async fn login_to_discord(driver: WebDriver) -> Result<(), Box<dyn Error + Send 
     Ok(())
 }
 
-fn get_config_values(local_config_directory: &Path) {
-    //let json_file = File::open(local_config_directory);
+fn get_config_values(local_config_directory: &Path) -> Result<ConfigValues, Box< dyn Error>> {
+    let content = fs::read_to_string(local_config_directory)?;
+    let config_values: ConfigValues = serde_json::from_str(&content).unwrap();
+    return  Ok(config_values);
 }
