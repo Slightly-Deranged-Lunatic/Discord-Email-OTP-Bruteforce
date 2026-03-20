@@ -10,34 +10,27 @@ use directories::BaseDirs;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     if let Some(base_dirs) = BaseDirs::new() {
-        let local_data_directory = base_dirs.data_local_dir();
-        let os = platform().to_string();
+        let mut local_data_directory = base_dirs.data_local_dir().to_path_buf();
 
-        // Set to right directory based off linux or windows
-        let log_directory = if os == "Windows" {
-            local_data_directory.join("slightly_deranged_lunatic\\discord_bruteforcer")
-        } else {
-            local_data_directory.join("slightly_deranged_lunatic/discord_bruteforcer")
-        };
-        println!("{}", local_data_directory.display());
+        local_data_directory.push("slightly_deranged_lunatic");
+        local_data_directory.push("discord_brute_force");
+
         // Make log directory
-        if ! Path::exists(local_data_directory) {
-            fs::create_dir_all(local_data_directory)?;
+        if ! Path::exists(& local_data_directory) {
+            fs::create_dir_all(&local_data_directory)?;
         }
         // Initalize logs
         Ftail::new()
-        .console(LevelFilter::Info)
-        .daily_file(&log_directory, LevelFilter::Info)
+        .daily_file(&local_data_directory.as_path(), LevelFilter::Info)
         .init()?;
 
 
         // Does a config file exist?
-        let local_config_dir = base_dirs.config_local_dir();
-        let local_config_dir = if os == "Windows" {
-            local_config_dir.join("Slightly_deranged_lunatic\\discord_bruteforcer")
-        } else {
-            local_config_dir.join("Slightly_deranged_lunatic//discord_bruteforcer")
-        };
+        let mut local_config_dir = base_dirs.config_local_dir().to_path_buf();
+        local_config_dir.push("slightly_deranged_lunatic");
+        local_config_dir.push("discord_brute_force");
+        local_config_dir.push("config.json");
+
         if ! Path::exists(&local_config_dir) {
             log::info!("User had no config file, starting the creation process.");
             make_config_file::make_config_file()
