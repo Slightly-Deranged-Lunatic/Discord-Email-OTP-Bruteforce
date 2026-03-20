@@ -2,13 +2,21 @@ use thirtyfour::prelude::*;
 use std::{error::Error, path::Path};
 use ftail::Ftail;
 use log::LevelFilter;
+use std::fs::File;
+pub mod make_config_file;
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     Ftail::new()
     .console(LevelFilter::Info)
-    .daily_file(Path::new("../../logs"), LevelFilter::Error)
+    .daily_file(Path::new("../../logs"), LevelFilter::Info)
     .init()?;
+
+    if ! Path::exists(Path::new("../../configs/")) {
+        log::info!("User had no config file, starting the creation process.");
+        make_config_file::make_config_file()
+    }
 
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
