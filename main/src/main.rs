@@ -26,14 +26,14 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
 
         // Does a config file exist?
-        let mut local_config_dir = base_dirs.config_local_dir().to_path_buf();
-        local_config_dir.push("slightly_deranged_lunatic");
-        local_config_dir.push("discord_brute_force");
-        local_config_dir.push("config.json");
+        let mut local_config_directory = base_dirs.config_local_dir().to_path_buf();
+        local_config_directory.push("slightly_deranged_lunatic");
+        local_config_directory.push("discord_brute_force");
+        local_config_directory.push("config.json");
 
-        if ! Path::exists(&local_config_dir) {
+        if ! Path::exists(&local_config_directory) {
             log::info!("User had no config file, starting the creation process.");
-            make_config_file::make_config_file()
+            make_config_file::make_config_file(&local_config_directory);
         }
 
     }

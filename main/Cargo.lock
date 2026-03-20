@@ -604,6 +604,8 @@ dependencies = [
  "directories",
  "ftail",
  "log",
+ "serde",
+ "serde_json",
  "thirtyfour",
  "tokio",
  "whoami",
