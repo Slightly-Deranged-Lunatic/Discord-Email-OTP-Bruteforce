@@ -1,11 +1,9 @@
 use thirtyfour::prelude::*;
-use whoami::platform;
-use std::{env, error::Error, fs::{self, create_dir_all}, path::{Path, PathBuf}};
+use std::{ error::Error, fs, path::{Path}};
 use ftail::Ftail;
 use log::LevelFilter;
 pub mod make_config_file;
 use directories::BaseDirs;
-
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -29,7 +27,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut local_config_directory = base_dirs.config_local_dir().to_path_buf();
         local_config_directory.push("slightly_deranged_lunatic");
         local_config_directory.push("discord_brute_force");
-        local_config_directory.push("config.json");
+        local_config_directory = local_config_directory.join("config.json");
 
         if ! Path::exists(&local_config_directory) {
             log::info!("User had no config file, starting the creation process.");
@@ -73,4 +71,8 @@ async fn login_to_discord(driver: WebDriver) -> Result<(), Box<dyn Error + Send 
     // For now this will be it as I need to write code for making config file, I really did not think this through huh
     todo!();
     Ok(())
+}
+
+fn get_config_values(local_config_directory: &Path) {
+    //let json_file = File::open(local_config_directory);
 }

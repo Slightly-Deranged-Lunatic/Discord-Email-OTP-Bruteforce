@@ -3,6 +3,7 @@ use std::io::{self, Write};
 use std::{ fs::{self}, path::{Path}};
 
 use serde::{Deserialize, Serialize};
+use thirtyfour::common::print;
 
 
 #[derive(Serialize, Deserialize)]
@@ -14,11 +15,11 @@ struct ConfigValues {
 
 
 pub fn make_config_file(local_config_directory: &Path) {
-    let config_values = get_config_values(local_config_directory);
+    let config_values = input_config_values(local_config_directory);
     let _ = create_config_file(local_config_directory, config_values);
 }
 
-fn get_config_values(local_config_directory: &Path) -> ConfigValues {
+fn input_config_values(local_config_directory: &Path) -> ConfigValues {
     println!("It looks like you didn't have any configuration file, no worries we'll get you set up with one.");
     println!("First, what is your email used to login? This is necessary because we have to login");
 
@@ -56,10 +57,9 @@ fn get_config_values(local_config_directory: &Path) -> ConfigValues {
 
 fn create_config_file(local_config_directory: &Path, config_values: ConfigValues) -> io::Result<()> {
     // Function that actually makes the configuration file and puts data in it
-    let local_config_directory = local_config_directory.parent().expect("pls no orphan files");
     let data = serde_json::to_string(&config_values)?;
-    fs::create_dir_all(local_config_directory)?;
-    let local_config_directory = local_config_directory.join("config.json");
+    println!("{}", local_config_directory.display());
+    fs::create_dir_all(local_config_directory.parent().expect("Man idk what happend"))?;
     let mut file = File::create_new(local_config_directory)?;
     file.write_all(data.as_bytes())?;
     
