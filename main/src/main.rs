@@ -54,7 +54,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
-    navigate_to_email_code_entry(driver, config_values).await?;
+    navigate_to_email_code_entry(&driver, config_values).await?;
 
     Ok(())
 }
@@ -64,7 +64,7 @@ async fn navigate_to_email_code_entry(driver: &WebDriver, config_values: ConfigV
     login_to_discord(driver, config_values).await?;
     click_settings_button(driver).await?;
     click_email_edit_button(driver).await?;
-
+    click_send_verification_code_button(driver).await?;
     Ok(())
 }
 
