@@ -1,5 +1,5 @@
 use thirtyfour::{common::{config, print}, prelude::*};
-use std::{ error::Error, fs, path::{Path, PathBuf}};
+use std::{ error::Error, fs, path::{Path, PathBuf}, time::Duration};
 use ftail::Ftail;
 use log::{LevelFilter, info};
 pub mod make_config_file;
@@ -54,6 +54,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
+
     navigate_to_email_code_entry(&driver, config_values).await?;
 
     Ok(())
@@ -114,6 +115,19 @@ async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error +
     let settings_button = driver.find(By::Css(settings_button_css_selector)).await?;
     log::info!("Found settings button");
 
+    // Wait for loading screen to fully disappear before clicking, not doing so results in an error
+    let loading_screen_class_name = "container_a2f514 fixClipping_efbae7";
+    loop {
+        let is_loading = driver
+        .query(By::ClassName(loading_screen_class_name))
+        .wait(Duration::from_secs(1), Duration::from_millis(500))
+        .exists()
+        .await?;
+        if ! is_loading {
+            break;
+        }
+    }
+
     settings_button.click().await?;
 
     Ok(())
@@ -147,7 +161,6 @@ async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), B
 
     Ok(())
 }
-
 
 fn get_config_values(local_config_directory: &Path) -> Result<ConfigValues, Box< dyn Error>> {
     let content = fs::read_to_string(local_config_directory)?;
