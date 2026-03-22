@@ -105,13 +105,12 @@ async fn login_to_discord(driver: &WebDriver, config_values: ConfigValues) -> Re
 }
 
 async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    // Find settings dock
-    let settings_dock_css_selector = ".container__37e49"; // I had NO idea what to call this but its the little panel with the mute, deafen settings button etc
-    driver.query(By::Css(settings_dock_css_selector)).first().await?;
-    log::info!("Found settings dock");
+    // Wait for settings button to exist
+    let settings_button_css_selector = ".buttons__37e49 > button:nth-child(3)";
+    driver.query(By::Css(settings_button_css_selector)).first().await?;
+    log::info!("Settings button exists");
 
     // Find settings button
-    let settings_button_css_selector = ".buttons__37e49 > button:nth-child(3)";
     let settings_button = driver.find(By::Css(settings_button_css_selector)).await?;
     log::info!("Found settings button");
 
@@ -121,14 +120,11 @@ async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error +
 }
 
 async fn click_email_edit_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    // Find account settings group stuff
-    let account_settings_group_css_selector = ".categories__6131a > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)";
-    driver.query(By::Css(account_settings_group_css_selector)).first().await?;
-    log::info!("Found account settings group");
-
-    // Find email edit button
+    // Wait for email edit button to exist
     let email_edit_button_css_selector = "div.field_a27e58:nth-child(3) > div:nth-child(2) > button:nth-child(1)";
-    driver.query(By::Css(email_edit_button_css_selector));
+    driver.query(By::Css(email_edit_button_css_selector)).first().await?;
+    log::info!("Email edit button exists");
+
     let email_edit_button = driver.find(By::Css(email_edit_button_css_selector)).await?;
     log::info!("Found email edit button");
 
@@ -139,18 +135,17 @@ async fn click_email_edit_button(driver: &WebDriver) -> Result<(), Box<dyn Error
 
 async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
     // Find button group with send verification code and cancel
-    let button_group = ".actionBar__8a031";
-    driver.query(By::Css(button_group)).first().await;
-    log::info!("Found send verification code dock");
+    let send_verfiication_code_button_css_selector = "button.md_a22cb0:nth-child(2)";
+    driver.query(By::Css(send_verfiication_code_button_css_selector)).first().await?;
+    log::info!("Send verification button exists");
 
     // Find send verfiication code button
-    let send_verfiication_code_button_css_selector = "button.md_a22cb0:nth-child(2)";
     let send_verification_code_button = driver.find(By::Css(send_verfiication_code_button_css_selector)).await?;
+    log::info!("Found send verfiication button");
 
-    send_verification_code_button.click();
+    send_verification_code_button.click().await?;
 
-Ok(())
-
+    Ok(())
 }
 
 
