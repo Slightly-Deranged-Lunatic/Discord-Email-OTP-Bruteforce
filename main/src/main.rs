@@ -81,21 +81,21 @@ async fn login_to_discord(driver: &WebDriver, config_values: ConfigValues) -> Re
     driver.goto("https://discord.com/login").await?;
     log::info!("Opened and navigated to https://discord.com/login");
 
-    let input_group_class = "animatedDiv_b97385"; // The box that has things like log in and text entries, grabbed because this will be frequently referenced and it feels easier to just grab from this
+    let input_group_class = "animatedDiv_b97385"; // The box that has things like log in and text entries, grabbed because this will be frequently referenced and it feels easier to just grab from this. Class was used because didn't have anything better from what I could see.
     driver.query(By::ClassName(input_group_class)).first().await?; // wait until the input group class is loaded to do anything
     let input_group = driver.find(By::ClassName(input_group_class)).await?;
     log::info!("Found input group");
 
     // Find email entry field
-    let email_entry_id = "uid_15";
-    driver.query(By::Id(email_entry_id)).first().await?;
-    let email_entry_field = input_group.find(By::Id(email_entry_id)).await?;
+    let email_entry_css = r#"[aria-label="Email or Phone Number"]"#;
+    driver.query(By::Css(email_entry_css)).first().await?;
+    let email_entry_field = input_group.find(By::Css(email_entry_css)).await?;
     log::info!("Found email entry field");
 
     // Find password entry field
-    let password_entry_id = "uid_17";
-    driver.query(By::Id(password_entry_id)).first().await?;
-    let password_entry_field = input_group.find(By::Id(password_entry_id)).await?;
+    let password_entry_css = r#"[aria-label="Password"]"#;
+    driver.query(By::Css(password_entry_css)).first().await?;
+    let password_entry_field = input_group.find(By::Css(password_entry_css)).await?;
     log::info!("Found password entry field");
     
     if config_values.email != "" {
