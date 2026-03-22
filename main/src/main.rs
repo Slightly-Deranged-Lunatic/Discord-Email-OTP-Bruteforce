@@ -87,35 +87,18 @@ async fn login_to_discord(driver: WebDriver, config_values: ConfigValues) -> Res
     driver.query(By::Id(password_entry_id)).first().await?;
     let password_entry_field = input_group.find(By::Id(password_entry_id)).await?;
     log::info!("Found password entry field");
-
-    // Find log in button
-    let login_button_css = "button[type='submit']";
-    driver.query(By::Id(login_button_css)).first().await?;
-    log::info!("Found login button");
-
-
-    let log_in_button = input_group.find(By::Css(login_button_css)).await?; // CSS used because the class is way too long and there is no ID
     
-    let mut auto_login = true;
     if config_values.email != "" {
         email_entry_field.send_keys(config_values.email).await?;
-    } else {
-        println!("Please enter your email manually, don't forget to log in");
-        auto_login = false;
+        log::info!("Typed in email")
     }
     
     if config_values.password != "" {
         password_entry_field.send_keys(config_values.password).await?;
-    } else {
-        println!("Please enter your password manually, don't forget to log in");
-        auto_login = false;
+        log::info!("Typed in password")
     }
-    
-    if auto_login {
-        log_in_button.click().await?;
-    } else {
-        println!("Press login when you are ready to login")
-    }
+
+    log::info!("Please input any data missing and login.");
 
     Ok(())
 }
