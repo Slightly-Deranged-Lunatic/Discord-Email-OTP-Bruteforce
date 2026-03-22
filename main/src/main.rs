@@ -54,20 +54,20 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
-
     navigate_to_email_code_entry(driver, config_values).await?;
 
     Ok(())
 }
 
-async fn navigate_to_email_code_entry(driver: WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn navigate_to_email_code_entry(driver: &WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
     log::info!("Started navigating to email code entry");
     login_to_discord(driver, config_values).await?;
+    click_settings_button(driver).await?;
 
     Ok(())
 }
 
-async fn login_to_discord(driver: WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn login_to_discord(driver: &WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
     driver.goto("https://discord.com/login").await?;
     log::info!("Opened and navigated to https://discord.com/login");
 
@@ -99,6 +99,39 @@ async fn login_to_discord(driver: WebDriver, config_values: ConfigValues) -> Res
     }
 
     log::info!("Please input any data missing and login.");
+
+    Ok(())
+}
+
+async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
+    // Find settings dock
+    let settings_dock_css_selector = ".container__37e49"; // I had NO idea what to call this but its the little panel with the mute, deafen settings button etc
+    driver.query(By::Css(settings_dock_css_selector)).first().await?;
+    log::info!("Found settings dock");
+
+    // Find settings button
+    let settings_button_css_selector = ".buttons__37e49 > button:nth-child(3)";
+    let settings_button = driver.find(By::Css(settings_button_css_selector)).await?;
+    log::info!("Found settings button");
+
+    settings_button.click().await?;
+
+    Ok(())
+}
+
+async fn click_email_edit_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
+    // Find account settings group stuff
+    let account_settings_group_css_selector = ".categories__6131a > div:nth-child(1) > div:nth-child(2) > div:nth-child(1)";
+    driver.query(By::Css(account_settings_group_css_selector)).first().await?;
+    log::info!("Found account settings group");
+
+    // Find email edit button
+    let email_edit_button_css_selector = "div.field_a27e58:nth-child(3) > div:nth-child(2) > button:nth-child(1)";
+    driver.query(By::Css(email_edit_button_css_selector));
+    let email_edit_button = driver.find(By::Css(email_edit_button_css_selector)).await?;
+    log::info!("Found email edit button");
+
+    email_edit_button.click().await?;
 
     Ok(())
 }
