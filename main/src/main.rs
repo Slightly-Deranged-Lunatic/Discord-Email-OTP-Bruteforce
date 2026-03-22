@@ -3,9 +3,9 @@ use std::{ error::Error, fs, path::{Path, PathBuf}, time::Duration, thread, time
 use rand::{RngExt, SeedableRng, rngs::{StdRng, SysRng}};
 use ftail::Ftail;
 use log::{LevelFilter};
-pub mod make_config_file;
 use directories::BaseDirs;
 use serde::{Deserialize, Serialize};
+pub mod make_config_file;
 
 
 #[derive(Serialize, Deserialize)]
