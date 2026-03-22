@@ -87,13 +87,13 @@ async fn login_to_discord(driver: &WebDriver, config_values: ConfigValues) -> Re
     log::info!("Found input group");
 
     // Find email entry field
-    let email_entry_css = r#"[aria-label="Email or Phone Number"]"#;
+    let email_entry_css = r#"[aria-label="Email or Phone Number"]"#; // CSS used because UID changes randomly for no reason
     driver.query(By::Css(email_entry_css)).first().await?;
     let email_entry_field = input_group.find(By::Css(email_entry_css)).await?;
     log::info!("Found email entry field");
 
     // Find password entry field
-    let password_entry_css = r#"[aria-label="Password"]"#;
+    let password_entry_css = r#"[aria-label="Password"]"#; // CSS used because UID changes randomly for no reason
     driver.query(By::Css(password_entry_css)).first().await?;
     let password_entry_field = input_group.find(By::Css(password_entry_css)).await?;
     log::info!("Found password entry field");
