@@ -1,9 +1,5 @@
-use std::fs::File;
-use std::io::{self, Write};
-use std::{ fs::{self}, path::{Path}};
-
+use std::{fs::File, io::{self, Write}, fs::{self}, path::{Path}};
 use serde::{Deserialize, Serialize};
-use thirtyfour::common::print;
 
 
 #[derive(Serialize, Deserialize)]
@@ -21,7 +17,8 @@ pub fn make_config_file(local_config_directory: &Path) {
 
 fn input_config_values(local_config_directory: &Path) -> ConfigValues {
     println!("It looks like you didn't have any configuration file, no worries we'll get you set up with one.");
-    println!("First, what is your email used to login? This is necessary because we have to login");
+    println!("Please note that if at anytime you don't wanna put something in, you can just press enter and input it yourself when you have to.");
+    println!("First, what is your email used to login?");
 
     let mut email = String::new();
     io::stdin()
@@ -58,7 +55,6 @@ fn input_config_values(local_config_directory: &Path) -> ConfigValues {
 fn create_config_file(local_config_directory: &Path, config_values: ConfigValues) -> io::Result<()> {
     // Function that actually makes the configuration file and puts data in it
     let data = serde_json::to_string(&config_values)?;
-    println!("{}", local_config_directory.display());
     fs::create_dir_all(local_config_directory.parent().expect("Man idk what happend"))?;
     let mut file = File::create_new(local_config_directory)?;
     file.write_all(data.as_bytes())?;
