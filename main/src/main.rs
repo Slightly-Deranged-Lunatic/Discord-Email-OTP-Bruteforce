@@ -1,7 +1,7 @@
 use thirtyfour::{common::{config, print}, prelude::*};
 use std::{ error::Error, fs, path::{Path, PathBuf}};
 use ftail::Ftail;
-use log::LevelFilter;
+use log::{LevelFilter, info};
 pub mod make_config_file;
 use directories::BaseDirs;
 use std::fs::File;
@@ -25,6 +25,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     // Initalize logs
     Ftail::new()
+    .console(LevelFilter::Info)
     .daily_file(&local_data_directory.as_path(), LevelFilter::Info)
     .init()?;
 
@@ -53,37 +54,47 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
-    println!("A");
-    navigate_to_email_code_entry(driver, config_values);
+
+    navigate_to_email_code_entry(driver, config_values).await?;
 
     Ok(())
 }
 
-fn navigate_to_email_code_entry(driver: WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
-    println!("Inside navbigate email function");
-    login_to_discord(driver, config_values);
+async fn navigate_to_email_code_entry(driver: WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+    log::info!("Started navigating to email code entry");
+    login_to_discord(driver, config_values).await?;
 
     Ok(())
 }
 
 async fn login_to_discord(driver: WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
-    driver.goto("https://discord.com/login");
+    driver.goto("https://discord.com/login").await?;
     log::info!("Opened and navigated to https://discord.com/login");
+
     let input_group_class = "animatedDiv_b97385"; // The box that has things like log in and text entries, grabbed because this will be frequently referenced and it feels easier to just grab from this
-    driver.query(By::ClassName(input_group_class)); // wait until the input group class is loaded to do anything
-    println!("A");
+    driver.query(By::ClassName(input_group_class)).first().await?; // wait until the input group class is loaded to do anything
     let input_group = driver.find(By::ClassName(input_group_class)).await?;
+    log::info!("Found input group");
 
     // Find email entry field
     let email_entry_id = "uid_15";
+    driver.query(By::Id(email_entry_id)).first().await?;
     let email_entry_field = input_group.find(By::Id(email_entry_id)).await?;
+    log::info!("Found email entry field");
 
     // Find password entry field
     let password_entry_id = "uid_17";
+    driver.query(By::Id(password_entry_id)).first().await?;
     let password_entry_field = input_group.find(By::Id(password_entry_id)).await?;
+    log::info!("Found password entry field");
 
     // Find log in button
-    let log_in_button = input_group.find(By::Css("button[type='submit']")).await?; // CSS used because the class is way too long and there is no ID
+    let login_button_css = "button[type='submit']";
+    driver.query(By::Id(login_button_css)).first().await?;
+    log::info!("Found login button");
+
+
+    let log_in_button = input_group.find(By::Css(login_button_css)).await?; // CSS used because the class is way too long and there is no ID
     
     let mut auto_login = true;
     if config_values.email != "" {
@@ -101,7 +112,7 @@ async fn login_to_discord(driver: WebDriver, config_values: ConfigValues) -> Res
     }
     
     if auto_login {
-        log_in_button.click().await;
+        log_in_button.click().await?;
     } else {
         println!("Press login when you are ready to login")
     }
