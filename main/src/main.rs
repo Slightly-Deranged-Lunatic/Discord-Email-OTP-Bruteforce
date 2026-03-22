@@ -1,10 +1,10 @@
 use thirtyfour::{common::{config, print}, prelude::*};
-use std::{ error::Error, fs, path::{Path, PathBuf}, time::Duration};
+use std::{ error::Error, fs, path::{Path, PathBuf}, time::Duration, thread, time, };
+use rand::rngs::StdRng;
 use ftail::Ftail;
-use log::{LevelFilter, info};
+use log::{LevelFilter};
 pub mod make_config_file;
 use directories::BaseDirs;
-use std::fs::File;
 use serde::{Deserialize, Serialize};
 
 
@@ -128,6 +128,7 @@ async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error +
         }
     }
 
+    time_to_sleep = 
     settings_button.click().await?;
 
     Ok(())
