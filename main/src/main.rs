@@ -63,6 +63,7 @@ async fn navigate_to_email_code_entry(driver: &WebDriver, config_values: ConfigV
     log::info!("Started navigating to email code entry");
     login_to_discord(driver, config_values).await?;
     click_settings_button(driver).await?;
+    click_email_edit_button(driver).await?;
 
     Ok(())
 }
@@ -135,6 +136,23 @@ async fn click_email_edit_button(driver: &WebDriver) -> Result<(), Box<dyn Error
 
     Ok(())
 }
+
+async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
+    // Find button group with send verification code and cancel
+    let button_group = ".actionBar__8a031";
+    driver.query(By::Css(button_group)).first().await;
+    log::info!("Found send verification code dock");
+
+    // Find send verfiication code button
+    let send_verfiication_code_button_css_selector = "button.md_a22cb0:nth-child(2)";
+    let send_verification_code_button = driver.find(By::Css(send_verfiication_code_button_css_selector)).await?;
+
+    send_verification_code_button.click();
+
+Ok(())
+
+}
+
 
 fn get_config_values(local_config_directory: &Path) -> Result<ConfigValues, Box< dyn Error>> {
     let content = fs::read_to_string(local_config_directory)?;
