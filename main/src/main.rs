@@ -1,4 +1,4 @@
-use thirtyfour::{common::print, prelude::*};
+use thirtyfour::{common::{config, print}, prelude::*};
 use std::{ error::Error, fs, path::{Path, PathBuf}};
 use ftail::Ftail;
 use log::LevelFilter;
@@ -53,24 +53,25 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
-
-    navigate_to_email_code_entry(driver.clone());
-
-    driver.quit().await?;
-    Ok(())
-}
-
-async fn navigate_to_email_code_entry(driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    login_to_discord(driver);
+    println!("A");
+    navigate_to_email_code_entry(driver, config_values);
 
     Ok(())
 }
 
-async fn login_to_discord(driver: WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    driver.goto("https://discord.com/login").await?;
+fn navigate_to_email_code_entry(driver: WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+    println!("Inside navbigate email function");
+    login_to_discord(driver, config_values);
+
+    Ok(())
+}
+
+async fn login_to_discord(driver: WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+    driver.goto("https://discord.com/login");
     log::info!("Opened and navigated to https://discord.com/login");
-
     let input_group_class = "animatedDiv_b97385"; // The box that has things like log in and text entries, grabbed because this will be frequently referenced and it feels easier to just grab from this
+    driver.query(By::ClassName(input_group_class)); // wait until the input group class is loaded to do anything
+    println!("A");
     let input_group = driver.find(By::ClassName(input_group_class)).await?;
 
     // Find email entry field
@@ -83,10 +84,28 @@ async fn login_to_discord(driver: WebDriver) -> Result<(), Box<dyn Error + Send 
 
     // Find log in button
     let log_in_button = input_group.find(By::Css("button[type='submit']")).await?; // CSS used because the class is way too long and there is no ID
+    
+    let mut auto_login = true;
+    if config_values.email != "" {
+        email_entry_field.send_keys(config_values.email).await?;
+    } else {
+        println!("Please enter your email manually, don't forget to log in");
+        auto_login = false;
+    }
+    
+    if config_values.password != "" {
+        password_entry_field.send_keys(config_values.password).await?;
+    } else {
+        println!("Please enter your password manually, don't forget to log in");
+        auto_login = false;
+    }
+    
+    if auto_login {
+        log_in_button.click().await;
+    } else {
+        println!("Press login when you are ready to login")
+    }
 
-
-    // For now this will be it as I need to write code for making config file, I really did not think this through huh
-    todo!();
     Ok(())
 }
 
