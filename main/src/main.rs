@@ -1,6 +1,6 @@
-use thirtyfour::{common::{config, print}, prelude::*};
+use thirtyfour::{prelude::*};
 use std::{ error::Error, fs, path::{Path, PathBuf}, time::Duration, thread, time, };
-use rand::rngs::StdRng;
+use rand::{RngExt, SeedableRng, rngs::{StdRng, SysRng}};
 use ftail::Ftail;
 use log::{LevelFilter};
 pub mod make_config_file;
@@ -51,21 +51,29 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             }
         }
     };
-    
+
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
 
-    navigate_to_email_code_entry(&driver, config_values).await?;
+    let mut rng = StdRng::try_from_rng(&mut SysRng).unwrap(); // From what I could see rng had to be mut to work?? I could just be stupid
+
+    navigate_to_email_code_entry(&driver, config_values, &mut rng).await?;
 
     Ok(())
 }
 
-async fn navigate_to_email_code_entry(driver: &WebDriver, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn navigate_to_email_code_entry(driver: &WebDriver, config_values: ConfigValues, rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
     log::info!("Started navigating to email code entry");
     login_to_discord(driver, config_values).await?;
     click_settings_button(driver).await?;
+    sleep(rng, 1, 5);
+
     click_email_edit_button(driver).await?;
+    sleep(rng, 1, 5);
+
     click_send_verification_code_button(driver).await?;
+    sleep(rng, 1, 5);
+
     Ok(())
 }
 
@@ -128,7 +136,6 @@ async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error +
         }
     }
 
-    time_to_sleep = 
     settings_button.click().await?;
 
     Ok(())
@@ -185,4 +192,12 @@ fn get_data_directories() -> (PathBuf, PathBuf) {
     } else{
         return (PathBuf::new(), PathBuf::new())
     }
+}
+
+fn sleep(rng: &mut StdRng, min: u64, max: u64) {
+
+    let time_to_sleep = rng.random_range(min..max);
+    log::info!("Sleeping for {} seconds", time_to_sleep);
+    let time_to_sleep = time::Duration::from_secs(time_to_sleep);
+    thread::sleep(time_to_sleep);
 }
