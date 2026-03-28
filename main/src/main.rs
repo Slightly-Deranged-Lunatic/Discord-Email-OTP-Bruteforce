@@ -1,10 +1,11 @@
 use thirtyfour::{prelude::*};
-use std::{ error::Error, fs, path::{Path, PathBuf}, time::Duration, thread, time, };
+use std::{ error::Error, fs, path::{Path, PathBuf}, thread, time::{self, Duration} };
 use rand::{RngExt, SeedableRng, rngs::{StdRng, SysRng}};
 use ftail::Ftail;
 use log::{LevelFilter};
 use directories::BaseDirs;
 use serde::{Deserialize, Serialize};
+use rand_regex;
 pub mod make_config_file;
 
 
@@ -114,9 +115,13 @@ async fn login_to_discord(driver: &WebDriver, config_values: ConfigValues) -> Re
 }
 
 async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    // Wait for settings button to exist
+    // Wait for settings button to exist and for the user to login
     let settings_button_css_selector = ".buttons__37e49 > button:nth-child(3)";
-    driver.query(By::Css(settings_button_css_selector)).first().await?;
+    log::info!("Waiting for user to login");
+
+    driver.query(By::Css(settings_button_css_selector))
+    .wait(Duration::from_secs(2300), Duration::from_millis(500)) // 2300 was just a random high number
+    .first().await?;
     log::info!("Settings button exists");
 
     // Find settings button
@@ -128,7 +133,7 @@ async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error +
     loop {
         let is_loading = driver
         .query(By::ClassName(loading_screen_class_name))
-        .wait(Duration::from_secs(1), Duration::from_millis(500))
+        .wait(Duration::from_secs(3), Duration::from_millis(500)) // 3 because it will timeout faster and thus actually continue the program faster.
         .exists()
         .await?;
         if ! is_loading {
@@ -168,6 +173,16 @@ async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), B
     send_verification_code_button.click().await?;
 
     Ok(())
+}
+
+fn bruteforce_codes() -> Result<String, Box<dyn Error + Send + Sync>> {
+
+    let mut rng = rand::rng();
+    let regex_gen = rand_regex::Regex::compile("[A-Z0-9]{6}", 100)?;
+
+    let random_string: String = rng.sample(&regex_gen);
+
+    Ok(random_string)
 }
 
 fn get_config_values(local_config_directory: &Path) -> Result<ConfigValues, Box< dyn Error>> {
