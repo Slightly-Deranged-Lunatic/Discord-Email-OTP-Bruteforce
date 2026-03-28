@@ -175,7 +175,7 @@ async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), B
     Ok(())
 }
 
-fn bruteforce_codes() -> Result<String, Box<dyn Error + Send + Sync>> {
+fn create_code() -> Result<String, Box<dyn Error + Send + Sync>> {
 
     let mut rng = rand::rng();
     let regex_gen = rand_regex::Regex::compile("[A-Z0-9]{6}", 100)?;
