@@ -181,7 +181,8 @@ fn create_code() -> Result<String, Box<dyn Error + Send + Sync>> {
     let regex_gen = rand_regex::Regex::compile("[A-Z0-9]{6}", 100)?;
 
     let random_string: String = rng.sample(&regex_gen);
-
+    log::info!("Generated code {}", random_string);
+    
     Ok(random_string)
 }
 
