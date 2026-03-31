@@ -176,6 +176,7 @@ async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), B
 }
 
 async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
+    // Find necessary elements
     let code_ui_screen_css_selector = ".size-md__8a031";
     driver.query(By::Css(code_ui_screen_css_selector)).first().await?;
     log::info!("Code UI menu exists");
@@ -199,10 +200,8 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
 
     let mut code_entry_count = 0;
 
-
+    // Logic to continuously enter codes until one works
     loop {
-
-
         // Detect rate limits and sleep for 30 minutes if rate limits
         let code_ui_text = code_ui_menu.text().await?;
         if code_ui_text.contains("You are being rate limited.") {
@@ -211,7 +210,7 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
             log::info!("Attempted {} codes before rate limits.", code_entry_count);
             thread::sleep(time_to_sleep); // We don't use sleep() because we need minutes not seconds, and I want a consistent value.
             code_entry_count = 0;
-        } else {
+        } else { // Actually input the code
             let code = create_code()?;
             input_box.send_keys(code.clone()).await?;
             attempt_code_button.click().await?;
