@@ -1,5 +1,5 @@
 use thirtyfour::{prelude::*};
-use std::{ error::Error, fs, path::{Path, PathBuf}, thread, time::{self, Duration} };
+use std::{ error::Error, fs, path::{Path, PathBuf}, thread, time::{self, Duration}, process::{Command, Stdio} };
 use rand::{RngExt, SeedableRng, rngs::{StdRng, SysRng}};
 use ftail::Ftail;
 use log::{LevelFilter};
@@ -52,6 +52,12 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             }
         }
     };
+
+    let _driver = Command::new("geckodriver")
+    .stdout(Stdio::null())
+    .spawn()
+    .expect("Geckodriver not installed.");
+    log::info!("Started geckodriver");
 
     let caps = DesiredCapabilities::firefox();
     let driver = WebDriver::new("http://localhost:4444", caps).await?;
