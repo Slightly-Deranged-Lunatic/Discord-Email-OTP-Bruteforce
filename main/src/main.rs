@@ -201,10 +201,9 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
 
 
     loop {
-        let code = create_code()?;
-        input_box.send_keys(code.clone()).await?;
 
-        // Detect rate limits and sleep for 30 minutes
+
+        // Detect rate limits and sleep for 30 minutes if rate limits
         let code_ui_text = code_ui_menu.text().await?;
         if code_ui_text.contains("You are being rate limited.") {
             let time_to_sleep = time::Duration::from_mins(30);
@@ -213,6 +212,8 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
             thread::sleep(time_to_sleep); // We don't use sleep() because we need minutes not seconds, and I want a consistent value.
             code_entry_count = 0;
         } else {
+            let code = create_code()?;
+            input_box.send_keys(code.clone()).await?;
             attempt_code_button.click().await?;
             code_entry_count += 1;
             log::info!("Trying code {}", code);
