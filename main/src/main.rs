@@ -217,7 +217,7 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
             code_entry_count += 1;
             log::info!("Trying code {}", code);
 
-            sleep(rng, 3, 7)
+            sleep(rng, 3, 7);
             input_box.clear().await?;
 
             log::info!("Cleared input box.");
