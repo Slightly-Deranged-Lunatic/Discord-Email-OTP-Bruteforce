@@ -260,7 +260,7 @@ async fn code_worked(driver: &WebDriver) -> Result<bool, Box<dyn Error + Send + 
     }
 }
 
-async fn do_survey(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn do_survey(driver: &WebDriver rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
     // Does the discord survey asking why you changed your email
     let survey_text_css_selector = ".size-md__8a031";
     let survey = driver
@@ -277,11 +277,14 @@ async fn do_survey(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync
         let option_button = driver.find(By::Css(option_css_selector)).await?;
         option_button.click().await?;
         log::info!("Clicked an option button");
+        sleep(rng, 3, 5);
 
         let continue_button_css_selector = "button.md_a22cb0:nth-child(2)";
         let continue_button = driver.find(By::Css(continue_button_css_selector)).await?;
         continue_button.click().await?;
-        log::info!("Clicked condinue button")
+        log::info!("Clicked condinue button");
+        sleep(rng, 3, 5);
+
     }
     Ok(())
 }
