@@ -59,14 +59,15 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let mut rng = StdRng::try_from_rng(&mut SysRng).unwrap(); // From what I could see rng had to be mut to work?? I could just be stupid
 
-    navigate_to_email_code_entry(&driver, config_values, &mut rng).await?;
+    navigate_to_email_code_entry(&driver, &config_values, &mut rng).await?;
     bruteforce_code(&driver, &mut rng).await?;
     do_survey(&driver, &mut rng).await?;
+    change_email(&driver, &mut rng, &config_values).await?;
 
     Ok(())
 }
 
-async fn navigate_to_email_code_entry(driver: &WebDriver, config_values: ConfigValues, rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn navigate_to_email_code_entry(driver: &WebDriver, config_values: &ConfigValues, rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
     log::info!("Started navigating to email code entry");
     login_to_discord(driver, config_values).await?;
     click_settings_button(driver).await?;
@@ -286,6 +287,25 @@ async fn do_survey(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box<dyn E
         sleep(rng, 3, 5);
 
     }
+    Ok(())
+}
+
+async fn change_email(driver: &WebDriver, rng: &mut StdRng, config_values: &ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+    // The whole field thing as a whole not the input 
+    let email_change_ui_css_selector = ".size-md__8a031";
+    let email_change_ui = driver.find(By::Css(email_change_ui_css_selector)).await?;
+    log::info!("Found email change ui thing");
+
+    let email_change_input_css = r#"[label="Email"]"#;
+    let email_change_input = email_change_ui.find(By::Css(email_change_input_css)).await?;
+    log::info!("Found email change input");
+
+    let password_input_css = r#"[label="Current Password"]"#;
+    let password_input = email_change_ui.find(By::Css(password_input_css)).await?;
+    log::info!("Found password input field.");
+
+    let confirm_button_css_selector = "button.md_a22cb0:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)";
+    let confirm_button = email_change_ui.find(By::Css(confirm_button_css_selector)).await?;
     Ok(())
 }
 
