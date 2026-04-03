@@ -1,4 +1,5 @@
 use thirtyfour::{prelude::*};
+use core::panic;
 use std::{ error::Error, fs, path::{Path, PathBuf}, thread, time::{self, Duration}, process::{Command, Stdio} };
 use rand::{RngExt, SeedableRng, rngs::{StdRng, SysRng}};
 use ftail::Ftail;
@@ -6,6 +7,7 @@ use log::{LevelFilter};
 use directories::BaseDirs;
 use serde::{Deserialize, Serialize};
 use rand_regex;
+use sysinfo::System;
 pub mod make_config_file;
 
 
@@ -53,14 +55,35 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         }
     };
 
-    let _driver = Command::new("geckodriver")
+    let _gecko_driver = Command::new("geckodriver")
     .stdout(Stdio::null())
     .spawn()
     .expect("Geckodriver not installed.");
-    log::info!("Started geckodriver");
+    log::info!("Trying to start Geckodriver");
 
-    let caps = DesiredCapabilities::firefox();
-    let driver = WebDriver::new("http://localhost:4444", caps).await?;
+    let driver = loop {
+        let caps = DesiredCapabilities::firefox();
+        match WebDriver::new("http://localhost:4444", caps).await {
+            Ok(driver) => {
+                log::info!("Gecko driver loaded!");
+                break driver
+            }
+            Err(err) => {
+                let err_string = err.to_string();
+                if err_string.contains("Session is already started") {
+                    println!("Geckodriver was already found, killing Geckodriver");
+                    let system = System::new_all();
+                    for process in system.processes_by_exact_name("geckodriver".as_ref()) {
+                        process.kill();
+                        log::info!("Killed geckodriver process")
+                    }
+                    continue;
+                }
+                println!("{}", err);
+                panic!("Geckodriver encountered an error, see above.");
+            }
+        };
+    };
 
     let mut rng = StdRng::try_from_rng(&mut SysRng).unwrap(); // From what I could see rng had to be mut to work?? I could just be stupid
 
