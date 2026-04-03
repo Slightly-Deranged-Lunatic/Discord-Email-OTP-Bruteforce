@@ -306,6 +306,8 @@ async fn change_email(driver: &WebDriver, rng: &mut StdRng, config_values: &Conf
 
     let confirm_button_css_selector = "button.md_a22cb0:nth-child(2) > div:nth-child(1) > div:nth-child(1) > span:nth-child(1)";
     let confirm_button = email_change_ui.find(By::Css(confirm_button_css_selector)).await?;
+    log::info!("Found confirm button.");
+
     Ok(())
 }
 
