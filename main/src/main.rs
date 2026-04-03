@@ -268,6 +268,7 @@ fn kill_geckodriver_processes() {
         log::info!("Killed geckodriver process")
     }
 }
+
 fn create_code() -> Result<String, Box<dyn Error + Send + Sync>> {
 
     let mut rng = rand::rng();
