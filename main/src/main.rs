@@ -61,7 +61,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     navigate_to_email_code_entry(&driver, config_values, &mut rng).await?;
     bruteforce_code(&driver, &mut rng).await?;
-    do_survey(&driver).await?;
+    do_survey(&driver, &mut rng).await?;
 
     Ok(())
 }
@@ -260,7 +260,7 @@ async fn code_worked(driver: &WebDriver) -> Result<bool, Box<dyn Error + Send + 
     }
 }
 
-async fn do_survey(driver: &WebDriver rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn do_survey(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
     // Does the discord survey asking why you changed your email
     let survey_text_css_selector = ".size-md__8a031";
     let survey = driver
