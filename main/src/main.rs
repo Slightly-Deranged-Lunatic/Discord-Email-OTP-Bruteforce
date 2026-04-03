@@ -120,13 +120,9 @@ async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error +
     let settings_button_css_selector = ".buttons__37e49 > button:nth-child(3)";
     log::info!("Waiting for user to login");
 
-    driver.query(By::Css(settings_button_css_selector))
+    let settings_button = driver.query(By::Css(settings_button_css_selector))
     .wait(Duration::from_secs(2300), Duration::from_millis(500)) // 2300 was just a random high number
     .first().await?;
-    log::info!("Settings button exists");
-
-    // Find settings button
-    let settings_button = driver.find(By::Css(settings_button_css_selector)).await?;
     log::info!("Found settings button");
 
     // Wait for loading screen to fully disappear before clicking, not doing so results in an error
@@ -150,9 +146,6 @@ async fn click_settings_button(driver: &WebDriver) -> Result<(), Box<dyn Error +
 async fn click_email_edit_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
     // Wait for email edit button to exist
     let email_edit_button_css_selector = "div.field_a27e58:nth-child(3) > div:nth-child(2) > button:nth-child(1)";
-    driver.query(By::Css(email_edit_button_css_selector)).first().await?;
-    log::info!("Email edit button exists");
-
     let email_edit_button = driver.find(By::Css(email_edit_button_css_selector)).await?;
     log::info!("Found email edit button");
 
@@ -162,12 +155,8 @@ async fn click_email_edit_button(driver: &WebDriver) -> Result<(), Box<dyn Error
 }
 
 async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
-    // Find button group with send verification code and cancel
-    let send_verfiication_code_button_css_selector = "button.md_a22cb0:nth-child(2)";
-    driver.query(By::Css(send_verfiication_code_button_css_selector)).first().await?;
-    log::info!("Send verification button exists");
-
     // Find send verfiication code button
+    let send_verfiication_code_button_css_selector = "button.md_a22cb0:nth-child(2)";
     let send_verification_code_button = driver.find(By::Css(send_verfiication_code_button_css_selector)).await?;
     log::info!("Found send verfiication button");
 
@@ -179,23 +168,14 @@ async fn click_send_verification_code_button(driver: &WebDriver) -> Result<(), B
 async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box<dyn Error + Send + Sync>> {
     // Find necessary elements
     let code_ui_screen_css_selector = ".size-md__8a031";
-    driver.query(By::Css(code_ui_screen_css_selector)).first().await?;
-    log::info!("Code UI menu exists");
-
     let code_ui_menu = driver.find(By::Css(code_ui_screen_css_selector)).await?;
     log::info!("Found code UI menu");
 
     let input_box_css_selector = r#"[label="Verification Code"]"#;
-    driver.query(By::Css(input_box_css_selector)).first().await?;
-    log::info!("Code input box exists.");
-
     let input_box = driver.find(By::Css(input_box_css_selector)).await?;
     log::info!("Found code input box.");
 
     let attempt_code_css_selector = ".actionBarTrailing__8a031 > div:nth-child(1) > button:nth-child(1)";
-    driver.query(By::Css(attempt_code_css_selector)).first().await?;
-    log::info!("Submit code button exists.");
-
     let attempt_code_button = driver.find(By::Css(attempt_code_css_selector)).await?;
     log::info!("Found attempt code button.");
 
