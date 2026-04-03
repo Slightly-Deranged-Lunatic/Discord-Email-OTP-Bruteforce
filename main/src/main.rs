@@ -194,24 +194,24 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
             let time_to_sleep = time::Duration::from_mins(30);
             thread::sleep(time_to_sleep); // We don't use sleep() because we need minutes not seconds, and I want a consistent value.
             code_entry_count = 0;
-        } else { // Actually input the code
-            let code = create_code()?;
-            log::info!("Trying code {}", code);
-            input_box.send_keys(code.clone()).await?;
-            attempt_code_button.click().await?;
-            code_entry_count += 1;
-
-            sleep(rng, 3, 7);
-
-            if code_worked(driver).await? {
-                break;
-            }
-
-            input_box.clear().await?;
-
-            log::info!("Cleared input box.");
-            sleep(rng, 40, 120);
         }
+        // Actually input the code
+        let code = create_code()?;
+        log::info!("Trying code {}", code);
+        input_box.send_keys(code.clone()).await?;
+        attempt_code_button.click().await?;
+        code_entry_count += 1;
+
+        sleep(rng, 3, 7);
+
+        if code_worked(driver).await? {
+            break;
+        }
+
+        input_box.clear().await?;
+
+        log::info!("Cleared input box.");
+        sleep(rng, 40, 120);
     }
 
     Ok(())
