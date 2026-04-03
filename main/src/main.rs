@@ -1,6 +1,6 @@
 use thirtyfour::{prelude::*};
 use core::panic;
-use std::{ error::Error, fs, path::{Path, PathBuf}, thread, time::{self, Duration}, process::{Command, Stdio} };
+use std::{ error::Error, fs, option, path::{Path, PathBuf}, process::{Command, Stdio}, thread, time::{self, Duration} };
 use rand::{RngExt, SeedableRng, rngs::{StdRng, SysRng}};
 use ftail::Ftail;
 use log::{LevelFilter};
@@ -194,12 +194,17 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
             code_entry_count = 0;
         } else { // Actually input the code
             let code = create_code()?;
+            log::info!("Trying code {}", code);
             input_box.send_keys(code.clone()).await?;
             attempt_code_button.click().await?;
             code_entry_count += 1;
-            log::info!("Trying code {}", code);
 
             sleep(rng, 3, 7);
+
+            if code_worked(driver).await? {
+                break;
+            }
+
             input_box.clear().await?;
 
             log::info!("Cleared input box.");
@@ -239,6 +244,44 @@ async fn start_webdriver() -> WebDriver {
             }
         };
     };
+}
+
+async fn code_worked(driver: &WebDriver) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    let source = driver.source().await?;
+    if source.contains("Why are you changing your email?") || source.contains("Enter an email address") {
+        log::info!("Code worked!");
+        Ok(true)
+    }
+    else {
+        log::info!("Code failed");
+        Ok(false)
+    }
+}
+
+async fn do_survey(driver: &WebDriver) -> Result<(), Box<dyn Error + Send + Sync>> {
+    // Does the discord survey asking why you changed your email
+    let survey_text_css_selector = ".size-md__8a031";
+    let survey = driver
+        .query(By::ClassName(survey_text_css_selector))
+        .wait(Duration::from_secs(10), Duration::from_millis(500)) // Wait 10 seconds for the survey to appear.
+        .exists()
+        .await?;
+    if ! survey {
+        log::info!("No survey found");
+    }
+    else {
+        log::info!("Found survey");
+        let option_css_selector = "label.radioGroupOption__64e61:nth-child(4) > span:nth-child(1) > input:nth-child(1)";
+        let option_button = driver.find(By::Css(option_css_selector)).await?;
+        option_button.click().await?;
+        log::info!("Clicked an option button");
+
+        let continue_button_css_selector = "button.md_a22cb0:nth-child(2)";
+        let continue_button = driver.find(By::Css(continue_button_css_selector)).await?;
+        continue_button.click().await?;
+        log::info!("Clicked condinue button")
+    }
+    Ok(())
 }
 
 fn kill_geckodriver_processes() {
