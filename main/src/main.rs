@@ -1,6 +1,5 @@
 use thirtyfour::{prelude::*};
-use core::panic;
-use std::{ error::Error, fs, option, path::{Path, PathBuf}, process::{Command, Stdio}, thread, time::{self, Duration} };
+use std::{ error::Error, fs, path::{Path, PathBuf}, process::{Command, Stdio}, thread, time::{self, Duration} };
 use rand::{RngExt, SeedableRng, rngs::{StdRng, SysRng}};
 use ftail::Ftail;
 use log::{LevelFilter};
