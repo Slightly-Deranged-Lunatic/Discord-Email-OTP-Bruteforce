@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     navigate_to_email_code_entry(&driver, &mut rng).await?;
     bruteforce_code(&driver, &mut rng).await?;
     do_survey(&driver, &mut rng).await?;
-    change_email(&driver, &mut rng, config_values).await?;
+    change_email(&driver, &mut rng, &config_values).await?;
 
     Ok(())
 }
@@ -103,12 +103,12 @@ async fn login_to_discord(driver: &WebDriver, config_values: &ConfigValues) -> R
     log::info!("Found password entry field");
     
     if config_values.email != "" {
-        email_entry_field.send_keys(config_values.email).await?;
+        email_entry_field.send_keys(config_values.email.clone()).await?;
         log::info!("Typed in email")
     }
     
     if config_values.password != "" {
-        password_entry_field.send_keys(config_values.password).await?;
+        password_entry_field.send_keys(config_values.password.clone()).await?;
         log::info!("Typed in password")
     }
 
@@ -289,7 +289,7 @@ async fn do_survey(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box<dyn E
     Ok(())
 }
 
-async fn change_email(driver: &WebDriver, rng: &mut StdRng, config_values: ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn change_email(driver: &WebDriver, rng: &mut StdRng, config_values: &ConfigValues) -> Result<(), Box<dyn Error + Send + Sync>> {
     // The whole field thing as a whole not the input 
     let email_change_ui_css_selector = ".size-md__8a031";
     let email_change_ui = driver.find(By::Css(email_change_ui_css_selector)).await?;
@@ -304,13 +304,13 @@ async fn change_email(driver: &WebDriver, rng: &mut StdRng, config_values: Confi
     log::info!("Found password input field.");
 
     if config_values.email != "" {
-        email_entry_field.send_keys(config_values.new_email).await?;
+        email_entry_field.send_keys(config_values.new_email.clone()).await?;
         log::info!("Typed in email")
     }
     sleep(rng, 3, 5);
 
     if config_values.password != "" {
-        password_entry_field.send_keys(config_values.password).await?;
+        password_entry_field.send_keys(config_values.password.clone()).await?;
         log::info!("Typed in password")
     }
 
