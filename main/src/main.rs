@@ -61,6 +61,8 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     navigate_to_email_code_entry(&driver, config_values, &mut rng).await?;
     bruteforce_code(&driver, &mut rng).await?;
+    do_survey(&driver).await?;
+
     Ok(())
 }
 
