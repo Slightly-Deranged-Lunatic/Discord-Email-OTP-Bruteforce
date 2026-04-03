@@ -55,35 +55,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         }
     };
 
-    let _gecko_driver = Command::new("geckodriver")
-    .stdout(Stdio::null())
-    .spawn()
-    .expect("Geckodriver not installed.");
-    log::info!("Trying to start Geckodriver");
-
-    let driver = loop {
-        let caps = DesiredCapabilities::firefox();
-        match WebDriver::new("http://localhost:4444", caps).await {
-            Ok(driver) => {
-                log::info!("Gecko driver loaded!");
-                break driver
-            }
-            Err(err) => {
-                let err_string = err.to_string();
-                if err_string.contains("Session is already started") {
-                    println!("Geckodriver was already found, killing Geckodriver");
-                    let system = System::new_all();
-                    for process in system.processes_by_exact_name("geckodriver".as_ref()) {
-                        process.kill();
-                        log::info!("Killed geckodriver process")
-                    }
-                    continue;
-                }
-                println!("{}", err);
-                panic!("Geckodriver encountered an error, see above.");
-            }
-        };
-    };
+    let driver = start_webdriver().await;
 
     let mut rng = StdRng::try_from_rng(&mut SysRng).unwrap(); // From what I could see rng had to be mut to work?? I could just be stupid
 
@@ -257,6 +229,45 @@ async fn bruteforce_code(driver: &WebDriver, rng: &mut StdRng) -> Result<(), Box
     Ok(())
 }
 
+async fn start_webdriver() -> WebDriver {
+    let _gecko_driver = Command::new("geckodriver")
+    .stdout(Stdio::null())
+    .spawn()
+    .expect("Geckodriver not installed.");
+    log::info!("Trying to start Geckodriver");
+
+    loop {
+        let caps = DesiredCapabilities::firefox();
+
+        match WebDriver::new("http://localhost:4444", caps).await {
+            Ok(driver) => {
+                log::info!("Driver started!");
+                return driver;
+            }
+            Err(err) => {
+                let err_string = err.to_string();
+                if err_string.contains("Session is already started") {
+                    kill_geckodriver_processes();
+                    continue;
+                    }
+                let _gecko_driver = Command::new("geckodriver")
+                .stdout(Stdio::null())
+                .spawn()
+                .expect("Geckodriver not installed.");
+                log::info!("Trying to start Geckodriver");
+            }
+        };
+    };
+}
+
+fn kill_geckodriver_processes() {
+    log::warn!("Geckodriver was already found, killing Geckodriver");
+    let system = System::new_all();
+    for process in system.processes_by_exact_name("geckodriver".as_ref()) {
+        process.kill();
+        log::info!("Killed geckodriver process")
+    }
+}
 fn create_code() -> Result<String, Box<dyn Error + Send + Sync>> {
 
     let mut rng = rand::rng();
